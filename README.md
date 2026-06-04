@@ -27,7 +27,7 @@ This repository contains a step-by-step guide to deploy an Azure Virtual Desktop
 
 - An Azure subscription with Owner or Contributor access
 - Azure CLI (`az`) installed — [Install guide](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
-- An existing Active Directory Domain Controller (already deployed in Azure or on-premises with connectivity)
+- **An existing Domain Controller VNet with Active Directory Domain Controllers already deployed on Azure**
 - Basic familiarity with Azure networking and Active Directory
 
 ## Custom Image (Optional)
