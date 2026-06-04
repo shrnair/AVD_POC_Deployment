@@ -13,40 +13,7 @@
 | Internet | NAT Gateway with static public IP |
 | Golden Image | Windows 11 23H2 Enterprise Multi-Session, FSLogix, New Teams, Adobe Acrobat Reader DC, VDOT, Windows Updates |
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│ VNet: 10.20.0.0/20 (AVD VNet)                               │
-│                                                             │
-│  ┌──────────────────┐    ┌──────────────────┐              │
-│  │ Session Hosts    │    │ Private Endpoint │              │
-│  │ 10.20.0.0/24     │    │ 10.20.1.0/27     │              │
-│  │ avdsh-01..06     │    │ pe-storage       ├─→ Azure Files│
-│  │ (no public IPs)  ├───→│ (SMB 445)        │              │
-│  └────────┬─────────┘    └──────────────────┘              │
-│           │                                                 │
-│           v NAT GW                                          │
-│      ↓ Internet/M365/Windows Update                         │
-│                                                             │
-│  ┌──────────────────┐                                       │
-│  │ AD/DNS           │                                       │
-│  │ 10.20.2.0/27     │                                       │
-│  │ dc01 (10.20.2.4) │                                       │
-│  │ dc02 (10.20.2.5) │                                       │
-│  └────────┬─────────┘                                       │
-└────────────────────────────────────────────────────────────┬┘
-             │                                                │
-             │ VNet Peering (bidirectional) ←───────────────→
-             │
-┌────────────────────────────────────────────────────────────┬┘
-│ DC VNet (if separate)                                       │
-│  ┌──────────────────┐                                       │
-│  │ Domain Control   │                                       │
-│  │ (on-prem or      │                                       │
-│  │  separate VNet)  │                                       │
-│  └──────────────────┘                                       │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+![AVD Architecture](avd-architecture.svg)
 
 ## Pre-Flight: Gather These Values
 

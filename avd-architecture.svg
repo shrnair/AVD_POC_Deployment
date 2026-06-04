@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 800" width="1100" height="800" style="background-color: #ffffff;">
+  <!-- AVD VNet Box -->
+  <rect x="50" y="50" width="700" height="450" rx="8" fill="#e7f5ff" stroke="#1e1e1e" stroke-width="2"/>
+  <text x="70" y="80" font-family="Arial, sans-serif" font-size="20" fill="#1e1e1e" font-weight="bold">AVD VNet: 10.20.0.0/20</text>
+
+  <!-- Session Hosts Subnet -->
+  <rect x="80" y="110" width="250" height="150" rx="6" fill="#d3f9d8" stroke="#2f9e44" stroke-width="2"/>
+  <text x="110" y="135" font-family="Arial, sans-serif" font-size="16" fill="#2f9e44" font-weight="bold">Session Hosts Subnet</text>
+  <text x="110" y="160" font-family="Arial, sans-serif" font-size="14" fill="#1e1e1e">10.20.0.0/24</text>
+  <text x="110" y="180" font-family="Arial, sans-serif" font-size="14" fill="#1e1e1e">avdsh-01..06</text>
+  <text x="110" y="200" font-family="Arial, sans-serif" font-size="14" fill="#1e1e1e">(No Public IPs)</text>
+  <text x="110" y="220" font-family="Arial, sans-serif" font-size="14" fill="#1e1e1e">Domain-joined</text>
+
+  <!-- Private Endpoint Subnet -->
+  <rect x="420" y="110" width="250" height="150" rx="6" fill="#fff3bf" stroke="#e67700" stroke-width="2"/>
+  <text x="445" y="135" font-family="Arial, sans-serif" font-size="16" fill="#e67700" font-weight="bold">Private Endpoint Subnet</text>
+  <text x="445" y="160" font-family="Arial, sans-serif" font-size="14" fill="#1e1e1e">10.20.1.0/27</text>
+  <text x="445" y="180" font-family="Arial, sans-serif" font-size="14" fill="#1e1e1e">pe-storage</text>
+  <text x="445" y="200" font-family="Arial, sans-serif" font-size="14" fill="#1e1e1e">SMB 445 → Azure Files</text>
+  <text x="445" y="220" font-family="Arial, sans-serif" font-size="14" fill="#1e1e1e">(FSLogix Profiles)</text>
+
+  <!-- Arrow: Session Hosts → Private Endpoint -->
+  <line x1="330" y1="185" x2="420" y2="185" stroke="#1e1e1e" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- NAT Gateway -->
+  <rect x="80" y="300" width="250" height="70" rx="6" fill="#f4fce3" stroke="#5c940d" stroke-width="2"/>
+  <text x="110" y="325" font-family="Arial, sans-serif" font-size="15" fill="#5c940d" font-weight="bold">NAT Gateway</text>
+  <text x="110" y="348" font-family="Arial, sans-serif" font-size="14" fill="#1e1e1e">→ Internet Egress</text>
+
+  <!-- Arrow: Session Hosts → NAT GW -->
+  <line x1="205" y1="260" x2="205" y2="300" stroke="#1e1e1e" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Azure Files Box (outside VNet) -->
+  <rect x="820" y="110" width="200" height="150" rx="6" fill="#d0ebff" stroke="#1971c2" stroke-width="2"/>
+  <text x="870" y="145" font-family="Arial, sans-serif" font-size="16" fill="#1971c2" font-weight="bold">Azure Files</text>
+  <text x="870" y="170" font-family="Arial, sans-serif" font-size="14" fill="#1e1e1e">(Premium)</text>
+  <text x="870" y="190" font-family="Arial, sans-serif" font-size="14" fill="#1e1e1e">4 TiB</text>
+  <text x="870" y="210" font-family="Arial, sans-serif" font-size="14" fill="#1e1e1e">FSLogix Profiles</text>
+
+  <!-- Arrow: PE → Azure Files -->
+  <line x1="670" y1="185" x2="820" y2="185" stroke="#1971c2" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- DC VNet Box -->
+  <rect x="50" y="570" width="400" height="180" rx="8" fill="#f3d9fa" stroke="#862e9c" stroke-width="2"/>
+  <text x="70" y="600" font-family="Arial, sans-serif" font-size="18" fill="#862e9c" font-weight="bold">DC VNet</text>
+
+  <!-- DC Box -->
+  <rect x="80" y="620" width="200" height="110" rx="6" fill="#e5dbff" stroke="#862e9c" stroke-width="2"/>
+  <text x="100" y="645" font-family="Arial, sans-serif" font-size="13" fill="#1e1e1e">Domain Controller</text>
+  <text x="100" y="665" font-family="Arial, sans-serif" font-size="13" fill="#1e1e1e">AD DS + DNS</text>
+  <text x="100" y="685" font-family="Arial, sans-serif" font-size="13" fill="#1e1e1e">dc01 / dc02</text>
+  <text x="100" y="705" font-family="Arial, sans-serif" font-size="13" fill="#1e1e1e">(Provides DNS to AVD VNet)</text>
+
+  <!-- VNet Peering Bidirectional Arrow -->
+  <line x1="250" y1="500" x2="250" y2="570" stroke="#862e9c" stroke-width="2" marker-start="url(#arrowhead-purple)" marker-end="url(#arrowhead-purple)"/>
+  <text x="265" y="540" font-family="Arial, sans-serif" font-size="14" fill="#862e9c" font-weight="bold">VNet Peering</text>
+
+  <!-- Users Box -->
+  <rect x="820" y="350" width="200" height="120" rx="6" fill="#dbe4ff" stroke="#364fc7" stroke-width="2"/>
+  <text x="870" y="385" font-family="Arial, sans-serif" font-size="15" fill="#364fc7" font-weight="bold">Users</text>
+  <text x="855" y="408" font-family="Arial, sans-serif" font-size="13" fill="#1e1e1e">(Windows App /</text>
+  <text x="855" y="426" font-family="Arial, sans-serif" font-size="13" fill="#1e1e1e">Web Client)</text>
+  <text x="855" y="450" font-family="Arial, sans-serif" font-size="13" fill="#1e1e1e">→ AVD Control Plane</text>
+
+  <!-- Arrow: Users → Session Hosts -->
+  <path d="M 820 400 C 700 380, 400 200, 330 185" stroke="#364fc7" stroke-width="2" fill="none" marker-end="url(#arrowhead-blue)"/>
+
+  <!-- Golden Image Box -->
+  <rect x="550" y="570" width="220" height="150" rx="6" fill="#ffe8cc" stroke="#e8590c" stroke-width="2"/>
+  <text x="575" y="595" font-family="Arial, sans-serif" font-size="14" fill="#e8590c" font-weight="bold">Golden Image</text>
+  <text x="575" y="615" font-family="Arial, sans-serif" font-size="12" fill="#1e1e1e">(Azure Image Builder)</text>
+  <text x="575" y="640" font-family="Arial, sans-serif" font-size="12" fill="#1e1e1e">• FSLogix</text>
+  <text x="575" y="658" font-family="Arial, sans-serif" font-size="12" fill="#1e1e1e">• Teams + WebRTC</text>
+  <text x="575" y="676" font-family="Arial, sans-serif" font-size="12" fill="#1e1e1e">• Adobe Reader DC</text>
+  <text x="575" y="694" font-family="Arial, sans-serif" font-size="12" fill="#1e1e1e">• VDOT Optimizations</text>
+
+  <!-- Arrow: Golden Image → Session Hosts -->
+  <path d="M 550 610 C 450 500, 350 350, 300 260" stroke="#e8590c" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arrowhead-orange)"/>
+
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#1e1e1e"/>
+    </marker>
+    <marker id="arrowhead-purple" markerWidth="10" markerHeight="7" refX="5" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#862e9c"/>
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#364fc7"/>
+    </marker>
+    <marker id="arrowhead-orange" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#e8590c"/>
+    </marker>
+  </defs>
+</svg>
