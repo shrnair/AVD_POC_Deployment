@@ -15,7 +15,7 @@ This repository contains a step-by-step guide to deploy an Azure Virtual Desktop
 1. Open **[AVD-POC-Simple-Guide.md](AVD-POC-Simple-Guide.md)** and follow the steps sequentially.
 2. The guide covers:
    - Resource Group, VNet, NSG, and NAT Gateway setup
-   - VNet peering to an existing AD domain controller
+   - VNet peering to an existing DC VNet
    - Host Pool, Workspace, and Application Group creation
    - Custom golden image build (FSLogix, Teams, Adobe Reader)
    - Session Host deployment (domain-joined)
