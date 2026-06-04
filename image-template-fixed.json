@@ -1,0 +1,113 @@
+{
+  "location": "centralus",
+  "identity": {
+    "type": "UserAssigned",
+    "userAssignedIdentities": {
+      "<INSERT_YOUR_IDENTITY_RESOURCE_ID>": {}
+    }
+  },
+  "properties": {
+    "buildTimeoutInMinutes": 120,
+    "vmProfile": {
+      "vmSize": "Standard_D2s_v4",
+      "osDiskSizeGB": 127,
+      "userAssignedIdentities": [
+        "<INSERT_YOUR_IDENTITY_RESOURCE_ID>"
+      ]
+    },
+    "source": {
+      "type": "PlatformImage",
+      "publisher": "MicrosoftWindowsDesktop",
+      "offer": "windows-11",
+      "sku": "win11-23h2-avd",
+      "version": "latest"
+    },
+    "customize": [
+      {
+        "type": "PowerShell",
+        "name": "InstallFSLogix",
+        "runElevated": true,
+        "inline": [
+          "New-Item -Path C:\\Install -ItemType Directory -Force",
+          "Invoke-WebRequest -Uri 'https://aka.ms/fslogix_download' -OutFile 'C:\\Install\\FSLogix.zip'",
+          "Expand-Archive -Path 'C:\\Install\\FSLogix.zip' -DestinationPath 'C:\\Install\\FSLogix' -Force",
+          "Start-Process -FilePath 'C:\\Install\\FSLogix\\x64\\Release\\FSLogixAppsSetup.exe' -ArgumentList '/install /quiet /norestart' -Wait"
+        ]
+      },
+      {
+        "type": "PowerShell",
+        "name": "InstallNewTeams",
+        "runElevated": true,
+        "inline": [
+          "Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/?linkid=2243204' -OutFile 'C:\\Install\\teamsbootstrapper.exe'",
+          "C:\\Install\\teamsbootstrapper.exe -p",
+          "Invoke-WebRequest -Uri 'https://aka.ms/msrdcwebrtcsvc/msi' -OutFile 'C:\\Install\\MsRdcWebRTCSvc.msi'",
+          "Start-Process msiexec.exe -ArgumentList '/i C:\\Install\\MsRdcWebRTCSvc.msi /quiet /norestart' -Wait"
+        ]
+      },
+      {
+        "type": "PowerShell",
+        "name": "InstallAdobeReader",
+        "runElevated": true,
+        "inline": [
+          "$token = (Invoke-RestMethod -Uri 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://storage.azure.com/' -Headers @{Metadata='true'}).access_token",
+          "$headers = @{Authorization=\"Bearer $token\"; 'x-ms-version'='2020-04-08'}",
+          "Invoke-WebRequest -Uri 'https://<INSTALLER_STORAGE_ACCOUNT>.blob.core.windows.net/<INSTALLER_CONTAINER>/AcroRdrDC2600121529_en_US.exe' -Headers $headers -OutFile 'C:\\Install\\AcroRdrDC.exe'",
+          "Start-Process -FilePath 'C:\\Install\\AcroRdrDC.exe' -ArgumentList '/sAll /rs /msi EULA_ACCEPT=YES' -Wait"
+        ]
+      },
+      {
+        "type": "PowerShell",
+        "name": "RunVDOT",
+        "runElevated": true,
+        "inline": [
+          "Invoke-WebRequest -Uri 'https://github.com/The-Virtual-Desktop-Team/Virtual-Desktop-Optimization-Tool/archive/refs/heads/main.zip' -OutFile 'C:\\Install\\VDOT.zip'",
+          "Expand-Archive -Path 'C:\\Install\\VDOT.zip' -DestinationPath 'C:\\Install\\VDOT' -Force",
+          "PowerShell -ExecutionPolicy Bypass -File 'C:\\Install\\VDOT\\Virtual-Desktop-Optimization-Tool-main\\Windows_VDOT.ps1' -Optimizations All -AcceptEula"
+        ]
+      },
+      {
+        "type": "PowerShell",
+        "name": "WindowsUpdate",
+        "runElevated": true,
+        "inline": [
+          "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force",
+          "Install-Module -Name PSWindowsUpdate -Force",
+          "Import-Module PSWindowsUpdate",
+          "Get-WindowsUpdate -AcceptAll -Install -IgnoreReboot"
+        ]
+      },
+      {
+        "type": "PowerShell",
+        "name": "ConfigureFSLogixRegistry",
+        "runElevated": true,
+        "inline": [
+          "New-Item -Path 'HKLM:\\SOFTWARE\\FSLogix\\Profiles' -Force",
+          "Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\FSLogix\\Profiles' -Name 'Enabled' -Value 1 -Type DWord",
+          "Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\FSLogix\\Profiles' -Name 'VHDLocations' -Value '\\\\<STORAGE_ACCOUNT_NAME>.file.core.windows.net\\<FILE_SHARE_NAME>' -Type String",
+          "Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\FSLogix\\Profiles' -Name 'DeleteLocalProfileWhenVHDShouldApply' -Value 1 -Type DWord",
+          "Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\FSLogix\\Profiles' -Name 'FlipFlopProfileDirectoryName' -Value 1 -Type DWord",
+          "Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\FSLogix\\Profiles' -Name 'SizeInMBs' -Value 30000 -Type DWord",
+          "Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\FSLogix\\Profiles' -Name 'VolumeType' -Value 'VHDX' -Type String"
+        ]
+      },
+      {
+        "type": "PowerShell",
+        "name": "Cleanup",
+        "runElevated": true,
+        "inline": [
+          "Remove-Item -Path C:\\Install -Recurse -Force -ErrorAction SilentlyContinue"
+        ]
+      }
+    ],
+    "distribute": [
+      {
+        "type": "SharedImage",
+        "galleryImageId": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RG_NAME>/providers/Microsoft.Compute/galleries/<GALLERY_NAME>/images/<IMAGE_DEF_NAME>",
+        "runOutputName": "avd-golden-image",
+        "replicationRegions": ["centralus"],
+        "storageAccountType": "Standard_LRS"
+      }
+    ]
+  }
+}

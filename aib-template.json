@@ -1,0 +1,123 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "variables": {
+    "imageTemplateName": "avd-win11-golden-template",
+    "identityId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'id-aib')]",
+    "imageName": "img-avd-win11-golden",
+    "installerStorageAccountName": "staibinstallers1703",
+    "installerContainerName": "installers",
+    "installerBlobBaseUrl": "[format('https://{0}.blob.core.windows.net/{1}', variables('installerStorageAccountName'), variables('installerContainerName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.VirtualMachineImages/imageTemplates",
+      "apiVersion": "2022-07-01",
+      "name": "[variables('imageTemplateName')]",
+      "location": "eastus",
+      "identity": {
+        "type": "UserAssigned",
+        "userAssignedIdentities": {
+          "[variables('identityId')]": {}
+        }
+      },
+      "properties": {
+        "buildTimeoutInMinutes": 120,
+        "vmProfile": {
+          "vmSize": "Standard_D4s_v5",
+          "osDiskSizeGB": 127
+        },
+        "source": {
+          "type": "PlatformImage",
+          "publisher": "MicrosoftWindowsDesktop",
+          "offer": "windows-11",
+          "sku": "win11-23h2-avd",
+          "version": "latest"
+        },
+        "customize": [
+          {
+            "type": "PowerShell",
+            "name": "Install FSLogix",
+            "runElevated": true,
+            "inline": [
+              "New-Item -Path C:\\Temp -ItemType Directory -Force | Out-Null",
+              "$token = (Invoke-RestMethod -Uri 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://storage.azure.com/' -Headers @{Metadata='true'}).access_token",
+              "$storageHeaders = @{ Authorization = \"Bearer $token\"; 'x-ms-version' = '2019-12-12' }",
+              "[concat('Invoke-WebRequest -UseBasicParsing -Uri ''', variables('installerBlobBaseUrl'), '/FSLogix.zip'' -Headers $storageHeaders -OutFile ''C:\\Temp\\FSLogix.zip''')]",
+              "Expand-Archive -Path 'C:\\Temp\\FSLogix.zip' -DestinationPath 'C:\\Temp\\FSLogix' -Force",
+              "Start-Process -FilePath 'C:\\Temp\\FSLogix\\x64\\Release\\FSLogixAppsSetup.exe' -ArgumentList '/install /quiet /norestart' -Wait"
+            ]
+          },
+          {
+            "type": "PowerShell",
+            "name": "Install New Microsoft Teams (per-machine provisioning)",
+            "runElevated": true,
+            "inline": [
+              "New-Item -Path 'C:\\Temp' -ItemType Directory -Force | Out-Null",
+              "$token = (Invoke-RestMethod -Uri 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://storage.azure.com/' -Headers @{Metadata='true'}).access_token",
+              "$storageHeaders = @{ Authorization = \"Bearer $token\"; 'x-ms-version' = '2019-12-12' }",
+              "[concat('Invoke-WebRequest -UseBasicParsing -Uri ''', variables('installerBlobBaseUrl'), '/teamsbootstrapper.exe'' -Headers $storageHeaders -OutFile ''C:\\Temp\\teamsbootstrapper.exe''')]",
+              "[concat('Invoke-WebRequest -UseBasicParsing -Uri ''', variables('installerBlobBaseUrl'), '/MSTeams-x64.msix'' -Headers $storageHeaders -OutFile ''C:\\Temp\\MSTeams-x64.msix''')]",
+              "C:\\Temp\\teamsbootstrapper.exe -p -o 'C:\\Temp\\MSTeams-x64.msix'",
+              "if (Test-Path 'C:\\Program Files\\WindowsApps\\MSTeams*') { Write-Host 'New Teams provisioned successfully' } else { Write-Host 'WARNING: Teams provisioning may have failed - check logs'; exit 1 }"
+            ]
+          },
+          {
+            "type": "PowerShell",
+            "name": "Install Adobe Acrobat Reader DC",
+            "runElevated": true,
+            "inline": [
+              "New-Item -Path 'C:\\Temp' -ItemType Directory -Force | Out-Null",
+              "$token = (Invoke-RestMethod -Uri 'http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://storage.azure.com/' -Headers @{Metadata='true'}).access_token",
+              "$storageHeaders = @{ Authorization = \"Bearer $token\"; 'x-ms-version' = '2019-12-12' }",
+              "[concat('Invoke-WebRequest -UseBasicParsing -Uri ''', variables('installerBlobBaseUrl'), '/AcroRdrDC.exe'' -Headers $storageHeaders -OutFile ''C:\\Temp\\AcroRdrDC.exe''')]",
+              "Start-Process -FilePath 'C:\\Temp\\AcroRdrDC.exe' -ArgumentList '/sAll /msi /norestart ALLUSERS=1 EULA_ACCEPT=YES' -Wait",
+              "Start-Sleep -Seconds 30"
+            ]
+          },
+          {
+            "type": "PowerShell",
+            "name": "Run VDOT Optimization",
+            "runElevated": true,
+            "inline": [
+              "Invoke-WebRequest -Uri 'https://github.com/The-Virtual-Desktop-Team/Virtual-Desktop-Optimization-Tool/archive/refs/heads/main.zip' -OutFile 'C:\\Temp\\VDOT.zip'",
+              "Expand-Archive -Path 'C:\\Temp\\VDOT.zip' -DestinationPath 'C:\\Temp\\VDOT' -Force",
+              "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force",
+              "C:\\Temp\\VDOT\\Virtual-Desktop-Optimization-Tool-main\\Windows_VDOT.ps1 -Optimizations All -AcceptEULA -Verbose"
+            ]
+          },
+          {
+            "type": "WindowsUpdate",
+            "searchCriteria": "IsInstalled=0",
+            "filters": [
+              "exclude:$_.Title -like '*Preview*'",
+              "include:$true"
+            ],
+            "updateLimit": 40
+          },
+          {
+            "type": "PowerShell",
+            "name": "Cleanup Temp",
+            "runElevated": true,
+            "inline": [
+              "Remove-Item -Path C:\\Temp -Recurse -Force -ErrorAction SilentlyContinue"
+            ]
+          }
+        ],
+        "distribute": [
+          {
+            "type": "ManagedImage",
+            "imageId": "[resourceId('Microsoft.Compute/images', variables('imageName'))]",
+            "location": "eastus",
+            "runOutputName": "avd-golden-image-output",
+            "artifactTags": {
+              "purpose": "AVD-POC",
+              "os": "Windows11-23H2-MultiSession"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
