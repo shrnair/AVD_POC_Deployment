@@ -14,20 +14,20 @@ This repository contains a step-by-step guide to deploy an Azure Virtual Desktop
 
 1. Open **[AVD-POC-Simple-Guide.md](AVD-POC-Simple-Guide.md)** and follow the steps sequentially.
 2. The guide covers:
-   - Resource Group, VNet, and NSG setup
-   - Active Directory Domain Controller deployment
-   - Entra ID Connect (hybrid identity sync)
+   - Resource Group, VNet, NSG, and NAT Gateway setup
+   - VNet peering to an existing AD domain controller
    - Host Pool, Workspace, and Application Group creation
    - Custom golden image build (FSLogix, Teams, Adobe Reader)
    - Session Host deployment (domain-joined)
    - FSLogix profile storage with Azure Files + Private Endpoint
    - NTFS permissions and user assignment
+   - End-to-end validation
 
 ## Prerequisites
 
 - An Azure subscription with Owner or Contributor access
 - Azure CLI (`az`) installed — [Install guide](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)
-- A domain (or willingness to create a new AD domain in Azure)
+- An existing Active Directory Domain Controller (already deployed in Azure or on-premises with connectivity)
 - Basic familiarity with Azure networking and Active Directory
 
 ## Custom Image (Optional)
